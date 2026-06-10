@@ -14,9 +14,9 @@ export class AudioAnalyzer {
     this.analyser.connect(this.context.destination);
   }
 
-  connect(audio: HTMLAudioElement): void {
+  connect(media: HTMLMediaElement): void {
     if (this.source) this.source.disconnect();
-    this.source = this.context.createMediaElementSource(audio);
+    this.source = this.context.createMediaElementSource(media);
     this.source.connect(this.analyser);
   }
 

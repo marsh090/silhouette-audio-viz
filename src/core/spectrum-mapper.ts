@@ -16,7 +16,7 @@ export class SpectrumMapper {
   }
 
   map(audio: AudioFrame): MappedFrame {
-    const { pointCount, peakHeight, minHeight, smoothing, colorMode, colorGradient } = this.config;
+    const { pointCount, peakHeight, intensity, minHeight, colorMode, colorGradient } = this.config;
     const energies = new Float32Array(pointCount);
     const colors = new Float32Array(pointCount * 3);
     const src = audio.frequencies;
@@ -29,7 +29,9 @@ export class SpectrumMapper {
       const frac = srcIdx - i0;
       const raw = (src[i0] * (1 - frac) + src[i1] * frac) / 255;
 
-      this.smoothed[i] = this.smoothed[i] * smoothing + raw * (1 - smoothing);
+      const diff = raw - this.smoothed[i];
+      const rate = diff > 0 ? intensity : intensity * 0.55;
+      this.smoothed[i] += diff * rate;
       energies[i] = Math.max(minHeight, this.smoothed[i] * peakHeight);
 
       let r = 255;

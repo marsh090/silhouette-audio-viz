@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { SpectrumMapper } from './spectrum-mapper';
-import { DEFAULT_VISUAL_CONFIG } from './types';
+import { DEFAULT_VISUAL_CONFIG } from './defaults';
 
 describe('SpectrumMapper', () => {
   it('resamples to pointCount', () => {
@@ -11,7 +11,7 @@ describe('SpectrumMapper', () => {
   });
 
   it('applies peakHeight multiplier', () => {
-    const config = { ...DEFAULT_VISUAL_CONFIG, peakHeight: 2.0, smoothing: 0 };
+    const config = { ...DEFAULT_VISUAL_CONFIG, peakHeight: 2.0, intensity: 1 };
     const mapper = new SpectrumMapper(config);
     const freqs = new Float32Array(64).fill(255);
     const frame = mapper.map({ frequencies: freqs, time: 0 });
@@ -19,7 +19,7 @@ describe('SpectrumMapper', () => {
   });
 
   it('respects minHeight floor', () => {
-    const config = { ...DEFAULT_VISUAL_CONFIG, minHeight: 0.1, smoothing: 0 };
+    const config = { ...DEFAULT_VISUAL_CONFIG, minHeight: 0.1, intensity: 1 };
     const mapper = new SpectrumMapper(config);
     const freqs = new Float32Array(64).fill(0);
     const frame = mapper.map({ frequencies: freqs, time: 0 });

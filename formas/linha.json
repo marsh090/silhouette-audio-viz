@@ -1,0 +1,21 @@
+{
+  "id": "line",
+  "label": "Linha",
+  "layout": "fullWidth",
+  "geometry": {
+    "type": "line",
+    "x0": 0,
+    "y0": 0.5,
+    "x1": 1,
+    "y1": 0.5
+  },
+  "defaults": {
+    "pointCount": 80,
+    "peakHeight": 1.2,
+    "intensity": 0.55,
+    "barWidth": 8,
+    "barDirection": "outward",
+    "gradientColorStart": "#ff3300",
+    "gradientColorEnd": "#33ff66"
+  }
+}

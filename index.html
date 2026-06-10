@@ -5,27 +5,252 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Silhouette Audio Viz</title>
     <style>
+      :root {
+        --bg: #0a0a12;
+        --surface: #14142a;
+        --surface-hover: #1c1c38;
+        --border: #2e2e4a;
+        --text: #eee;
+        --text-muted: #888;
+        --accent: #3b82f6;
+        --accent-glow: #60a5fa;
+        --radius: 8px;
+      }
+
       * { box-sizing: border-box; margin: 0; }
-      body { background: #0a0a12; color: #eee; font-family: system-ui, sans-serif; }
-      #app { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 1rem; }
-      canvas { background: #000; border-radius: 8px; max-width: 100%; }
-      .controls { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; align-items: end; }
-      label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; }
-      input[type="range"] { width: 160px; }
-      button {
-        background: #2a2a4a;
-        color: #eee;
-        border: 1px solid #444;
-        border-radius: 6px;
-        padding: 0.5rem 1rem;
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+
+      #app {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      canvas {
+        background: #000;
+        border-radius: var(--radius);
+        max-width: 100%;
+      }
+
+      .playback-wrap { width: min(800px, 100%); }
+
+      .playback-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+      }
+
+      .playback-time {
+        font-size: 0.8rem;
+        font-variant-numeric: tabular-nums;
+        flex-shrink: 0;
+        white-space: nowrap;
+        color: var(--text-muted);
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+        align-items: end;
+        width: min(800px, 100%);
+      }
+
+      .control-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        min-width: 140px;
+      }
+
+      .control-value {
+        font-size: 0.8rem;
+        color: var(--text);
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Shared range slider */
+      .control-range {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 160px;
+        height: 6px;
+        border-radius: 3px;
+        background: var(--border);
+        outline: none;
         cursor: pointer;
       }
-      button:hover { background: #3a3a6a; }
+
+      .control-range::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--accent);
+        border: 2px solid var(--accent-glow);
+        cursor: pointer;
+      }
+
+      .control-range::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--accent);
+        border: 2px solid var(--accent-glow);
+        cursor: pointer;
+      }
+
+      .control-range:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+
+      #playback-seek { flex: 1; width: auto; min-width: 0; }
+
+      /* Buttons */
+      button {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s;
+      }
+
+      button:hover:not(:disabled) {
+        background: var(--surface-hover);
+        border-color: var(--accent);
+      }
+
+      .playback-toggle {
+        flex-shrink: 0;
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0;
+        font-size: 1rem;
+        line-height: 1;
+      }
+
+      .playback-toggle:disabled { opacity: 0.4; cursor: not-allowed; }
+
+      /* Select */
+      .control-select {
+        appearance: none;
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0.5rem 2rem 0.5rem 0.75rem;
+        font-size: 0.85rem;
+        cursor: pointer;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M3 5l3 3 3-3'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.6rem center;
+        transition: border-color 0.15s;
+      }
+
+      .control-select:hover,
+      .control-select:focus {
+        border-color: var(--accent);
+        outline: none;
+      }
+
+      /* Color picker */
+      .control-color {
+        appearance: none;
+        width: 100%;
+        height: 2.25rem;
+        padding: 0.2rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: border-color 0.15s;
+      }
+
+      .control-color:hover,
+      .control-color:focus {
+        border-color: var(--accent);
+        outline: none;
+      }
+
+      .control-color::-webkit-color-swatch-wrapper { padding: 2px; }
+      .control-color::-webkit-color-swatch {
+        border: none;
+        border-radius: 4px;
+      }
+
+      .control-color::-moz-color-swatch {
+        border: none;
+        border-radius: 4px;
+      }
+
+      /* File picker */
+      .file-picker {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0.35rem 0.5rem;
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s;
+        min-width: 200px;
+      }
+
+      .file-picker:hover {
+        border-color: var(--accent);
+        background: var(--surface-hover);
+      }
+
+      .file-picker-btn {
+        flex-shrink: 0;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0.35rem 0.65rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        pointer-events: none;
+      }
+
+      .file-picker-name {
+        flex: 1;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .file-input-hidden {
+        position: absolute;
+        width: 0;
+        height: 0;
+        opacity: 0;
+        pointer-events: none;
+      }
     </style>
   </head>
   <body>
     <div id="app">
       <canvas id="viz" width="800" height="500"></canvas>
+      <div class="playback-wrap" id="playback"></div>
       <div class="controls" id="controls"></div>
     </div>
     <script type="module" src="/src/main.ts"></script>

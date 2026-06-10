@@ -1,0 +1,20 @@
+{
+  "id": "circle",
+  "label": "Círculo",
+  "layout": "fitted",
+  "geometry": {
+    "type": "circle",
+    "cx": 0.5,
+    "cy": 0.5,
+    "r": 0.22
+  },
+  "defaults": {
+    "pointCount": 80,
+    "peakHeight": 1.0,
+    "intensity": 0.4,
+    "barWidth": 8,
+    "barDirection": "outward",
+    "gradientColorStart": "#00ffff",
+    "gradientColorEnd": "#ff00c8"
+  }
+}
