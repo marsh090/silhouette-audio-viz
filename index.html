@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Silhouette Audio Viz</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; }
+      body { background: #0a0a12; color: #eee; font-family: system-ui, sans-serif; }
+      #app { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 1rem; }
+      canvas { background: #000; border-radius: 8px; max-width: 100%; }
+      .controls { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; align-items: end; }
+      label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; }
+      input[type="range"] { width: 160px; }
+      button {
+        background: #2a2a4a;
+        color: #eee;
+        border: 1px solid #444;
+        border-radius: 6px;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+      }
+      button:hover { background: #3a3a6a; }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="viz" width="800" height="500"></canvas>
+      <div class="controls" id="controls"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
