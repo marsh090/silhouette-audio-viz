@@ -1,5 +1,5 @@
-import type { EmissionSource, MappedFrame, SampledPoint, VisualConfig } from '../core/types';
-import { getViewport, toScreen } from './viewport';
+import type { EmissionSource, MappedFrame, VisualConfig } from '../core/types';
+import { getMaxAmplitudePx, toCanvasPoint } from './canvas-points';
 
 export class BarsRenderer {
   draw(
@@ -10,9 +10,7 @@ export class BarsRenderer {
     width: number,
     height: number,
   ): void {
-    ctx.clearRect(0, 0, width, height);
-    const vp = getViewport(width, height);
-    const maxBarPx = (source.layout === 'fullWidth' ? width : vp.size) * 0.2;
+    const maxBarPx = getMaxAmplitudePx(source, width, height);
     const direction = config.barDirection === 'inward' ? 1 : -1;
 
     const { sampled } = source;
@@ -24,7 +22,7 @@ export class BarsRenderer {
     for (let i = 0; i < sampled.length; i++) {
       const p = sampled[i];
       const barLen = energies[i] * maxBarPx;
-      const [px, py] = this.toCanvasPoint(p, source, width, height, vp);
+      const [px, py] = toCanvasPoint(p, source, width, height);
 
       const r = colors[i * 3];
       const g = colors[i * 3 + 1];
@@ -36,18 +34,5 @@ export class BarsRenderer {
       ctx.lineTo(px + p.nx * barLen * direction, py + p.ny * barLen * direction);
       ctx.stroke();
     }
-  }
-
-  private toCanvasPoint(
-    p: SampledPoint,
-    source: EmissionSource,
-    width: number,
-    height: number,
-    vp: ReturnType<typeof getViewport>,
-  ): [number, number] {
-    if (source.layout === 'fullWidth') {
-      return [p.x * width, p.y * height];
-    }
-    return toScreen(p.x, p.y, vp);
   }
 }

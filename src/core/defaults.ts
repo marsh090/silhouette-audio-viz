@@ -15,7 +15,7 @@ export const DEFAULT_VISUAL_CONFIG: VisualConfig = {
   barRoundness: 2,
   barDirection: 'outward',
   waveLayers: 3,
-  waveSymmetry: true,
+  waveSymmetry: false,
   waveSmoothing: 0.5,
   colorMode: 'gradient',
   gradientColorStart: GRADIENT_START,
@@ -23,4 +23,5 @@ export const DEFAULT_VISUAL_CONFIG: VisualConfig = {
   colorGradient: makeTwoColorGradient(GRADIENT_START, GRADIENT_END),
   glowIntensity: 0.8,
   smoothing: 0.7,
+  snapMode: false,
 };

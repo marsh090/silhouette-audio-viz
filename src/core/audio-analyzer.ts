@@ -6,7 +6,7 @@ export class AudioAnalyzer {
   private buffer: Uint8Array<ArrayBuffer>;
   private source: MediaElementAudioSourceNode | null = null;
 
-  constructor(fftSize = 256) {
+  constructor(fftSize = 512) {
     this.context = new AudioContext();
     this.analyser = this.context.createAnalyser();
     this.analyser.fftSize = fftSize;

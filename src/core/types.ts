@@ -19,6 +19,7 @@ export interface EmissionSource {
   type: 'path' | 'mask';
   sampled: SampledPoint[];
   layout?: ShapeLayout;
+  closed?: boolean;
   path?: ShapePath;
 }
 
@@ -52,6 +53,7 @@ export interface VisualConfig {
   colorGradient: ColorGradient;
   glowIntensity: number;
   smoothing: number;
+  snapMode: boolean;
 }
 
 export interface MappedFrame {
@@ -59,4 +61,4 @@ export interface MappedFrame {
   colors: Float32Array;
 }
 
-export type ShapeKind = 'line' | 'circle';
+export type ShapeKind = 'line' | 'circle' | 'triangle' | 'square';

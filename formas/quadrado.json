@@ -1,21 +1,22 @@
 {
-  "id": "circle",
-  "label": "Círculo",
+  "id": "square",
+  "label": "Quadrado",
   "layout": "fitted",
   "geometry": {
-    "type": "circle",
+    "type": "polygon",
     "cx": 0.5,
     "cy": 0.5,
-    "r": 0.22
+    "r": 0.24,
+    "sides": 4,
+    "rotation": 0.7854
   },
   "defaults": {
     "renderMode": "bars",
     "pointCount": 80,
     "peakHeight": 1.0,
-    "intensity": 0.4,
+    "intensity": 0.45,
     "barWidth": 8,
     "barDirection": "outward",
-    "waveLayers": 3,
     "waveSmoothing": 0.5,
     "waveSymmetry": false,
     "gradientColorStart": "#00ffff",

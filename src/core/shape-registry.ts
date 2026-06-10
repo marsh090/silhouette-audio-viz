@@ -1,6 +1,7 @@
 import circulo from '../../formas/circulo.json';
 import linha from '../../formas/linha.json';
-import { makeTwoColorGradient } from './color-gradient';
+import quadrado from '../../formas/quadrado.json';
+import triangulo from '../../formas/triangulo.json';
 import type { BarDirection, ShapeKind, ShapeLayout, VisualConfig } from './types';
 
 export interface LineGeometry {
@@ -18,11 +19,20 @@ export interface CircleGeometry {
   r: number;
 }
 
+export interface PolygonGeometry {
+  type: 'polygon';
+  cx: number;
+  cy: number;
+  r: number;
+  sides: number;
+  rotation?: number;
+}
+
 export interface ShapeDefinition {
   id: ShapeKind;
   label: string;
   layout: ShapeLayout;
-  geometry: LineGeometry | CircleGeometry;
+  geometry: LineGeometry | CircleGeometry | PolygonGeometry;
   defaults: Partial<VisualConfig> & {
     gradientColorStart?: string;
     gradientColorEnd?: string;
@@ -33,6 +43,8 @@ export interface ShapeDefinition {
 const DEFINITIONS: Record<ShapeKind, ShapeDefinition> = {
   line: linha as ShapeDefinition,
   circle: circulo as ShapeDefinition,
+  triangle: triangulo as ShapeDefinition,
+  square: quadrado as ShapeDefinition,
 };
 
 export function getShapeDefinition(kind: ShapeKind): ShapeDefinition {
@@ -43,17 +55,3 @@ export function getAllShapeDefinitions(): ShapeDefinition[] {
   return Object.values(DEFINITIONS);
 }
 
-/** Merge global defaults with shape-specific overrides from JSON. */
-export function configForShape(global: VisualConfig, kind: ShapeKind): VisualConfig {
-  const def = getShapeDefinition(kind);
-  const { gradientColorStart, gradientColorEnd, ...rest } = def.defaults;
-  const merged: VisualConfig = { ...global, ...rest };
-
-  if (gradientColorStart && gradientColorEnd) {
-    merged.gradientColorStart = gradientColorStart;
-    merged.gradientColorEnd = gradientColorEnd;
-    merged.colorGradient = makeTwoColorGradient(gradientColorStart, gradientColorEnd);
-  }
-
-  return merged;
-}

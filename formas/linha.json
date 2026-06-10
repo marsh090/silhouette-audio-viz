@@ -10,12 +10,16 @@
     "y1": 0.5
   },
   "defaults": {
+    "renderMode": "wave",
     "pointCount": 80,
     "peakHeight": 1.2,
     "intensity": 0.55,
-    "barWidth": 8,
+    "barWidth": 6,
     "barDirection": "outward",
-    "gradientColorStart": "#ff3300",
-    "gradientColorEnd": "#33ff66"
+    "waveLayers": 4,
+    "waveSmoothing": 0.6,
+    "waveSymmetry": false,
+    "gradientColorStart": "#00ffff",
+    "gradientColorEnd": "#ff00c8"
   }
 }

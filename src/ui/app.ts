@@ -1,12 +1,12 @@
 import { AudioAnalyzer } from '../core/audio-analyzer';
-import { DEFAULT_VISUAL_CONFIG } from '../core/defaults';
-import { configForShape, getShapeDefinition } from '../core/shape-registry';
+import { getInitialConfig, savePreset } from '../core/config-store';
+import { getShapeDefinition } from '../core/shape-registry';
 import { emissionFromDefinition } from '../core/shape-providers/shape-provider';
 import { SpectrumMapper } from '../core/spectrum-mapper';
 import type { ShapeKind, VisualConfig } from '../core/types';
 import { loadMediaFile } from '../media/media-source';
 import { FramePipeline } from '../pipeline/frame-pipeline';
-import { BarsRenderer } from '../render/bars-renderer';
+import { Visualizer } from '../render/visualizer';
 import { mountControls, syncControls } from './controls';
 import { mountPlaybackBar, type PlaybackBarHandle } from './playback-bar';
 
@@ -15,7 +15,7 @@ export class App {
   private shape: ShapeKind = 'circle';
   private analyzer = new AudioAnalyzer();
   private mapper: SpectrumMapper;
-  private renderer = new BarsRenderer();
+  private visualizer = new Visualizer();
   private pipeline: FramePipeline;
   private media: HTMLMediaElement | null = null;
   private playbackBar: PlaybackBarHandle;
@@ -28,7 +28,7 @@ export class App {
     playbackEl: HTMLElement,
   ) {
     this.controlsEl = controlsEl;
-    this.config = configForShape({ ...DEFAULT_VISUAL_CONFIG }, this.shape);
+    this.config = getInitialConfig('circle', 'bars');
     this.mapper = new SpectrumMapper(this.config);
 
     this.playbackBar = mountPlaybackBar(
@@ -36,22 +36,26 @@ export class App {
       (time) => this.seek(time),
       () => void this.togglePlay(),
     );
-    this.pipeline = new FramePipeline(() => this.tick());
+    this.pipeline = new FramePipeline((dt) => this.tick(dt));
     mountControls(controlsEl, this.config, this.shape, {
       onConfigChange: (patch) => {
         this.config = { ...this.config, ...patch };
         this.mapper.updateConfig(this.config);
+        if (patch.renderMode) syncControls(this.controlsEl, this.config, this.shape);
       },
       onShapeChange: (s) => this.applyShape(s),
       onMediaFile: (f) => void this.loadMedia(f),
+      onSavePreset: () => this.saveCurrentPreset(),
     });
   }
 
   private applyShape(shape: ShapeKind): void {
     this.shape = shape;
-    this.config = configForShape({ ...DEFAULT_VISUAL_CONFIG }, shape);
-    this.mapper.updateConfig(this.config);
     syncControls(this.controlsEl, this.config, shape);
+  }
+
+  private saveCurrentPreset(): void {
+    savePreset(this.shape, this.config.renderMode, this.config);
   }
 
   private async loadMedia(file: File): Promise<void> {
@@ -103,7 +107,7 @@ export class App {
     await this.media.play();
   }
 
-  private tick(): void {
+  private tick(dt: number): void {
     const ctx = this.canvas.getContext('2d');
     if (!ctx) return;
 
@@ -114,7 +118,7 @@ export class App {
     const def = getShapeDefinition(this.shape);
     const source = emissionFromDefinition(def, this.config);
     const audioFrame = this.analyzer.getFrame();
-    const mapped = this.mapper.map(audioFrame);
-    this.renderer.draw(ctx, source, mapped, this.config, this.canvas.width, this.canvas.height);
+    const mapped = this.mapper.map(audioFrame, dt);
+    this.visualizer.draw(ctx, source, mapped, this.config, this.canvas.width, this.canvas.height);
   }
 }
