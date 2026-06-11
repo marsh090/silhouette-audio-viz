@@ -1,5 +1,6 @@
 import type { EmissionSource, MappedFrame, VisualConfig } from '../core/types';
-import { getMaxAmplitudePx, toCanvasPoint } from './canvas-points';
+import { fillBarFlatBase } from './bar-shape';
+import { barGrowthSign, getMaxAmplitudePx, toCanvasPoint } from './canvas-points';
 
 export class BarsRenderer {
   draw(
@@ -11,13 +12,10 @@ export class BarsRenderer {
     height: number,
   ): void {
     const maxBarPx = getMaxAmplitudePx(source, width, height);
-    const direction = config.barDirection === 'inward' ? 1 : -1;
+    const direction = barGrowthSign(config, source);
 
     const { sampled } = source;
     const { energies, colors } = frame;
-
-    ctx.lineWidth = config.barWidth;
-    ctx.lineCap = 'round';
 
     for (let i = 0; i < sampled.length; i++) {
       const p = sampled[i];
@@ -27,12 +25,21 @@ export class BarsRenderer {
       const r = colors[i * 3];
       const g = colors[i * 3 + 1];
       const b = colors[i * 3 + 2];
+      const color = `rgb(${r | 0},${g | 0},${b | 0})`;
 
-      ctx.strokeStyle = `rgb(${r | 0},${g | 0},${b | 0})`;
-      ctx.beginPath();
-      ctx.moveTo(px, py);
-      ctx.lineTo(px + p.nx * barLen * direction, py + p.ny * barLen * direction);
-      ctx.stroke();
+      fillBarFlatBase(
+        ctx,
+        px,
+        py,
+        p.nx,
+        p.ny,
+        p.tx,
+        p.ty,
+        barLen,
+        direction,
+        config.barWidth,
+        color,
+      );
     }
   }
 }

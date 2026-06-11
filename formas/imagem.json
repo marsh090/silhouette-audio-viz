@@ -1,0 +1,26 @@
+{
+  "id": "image",
+  "label": "Imagem",
+  "layout": "fitted",
+  "geometry": {
+    "type": "image"
+  },
+  "defaults": {
+    "renderMode": "bars",
+    "pointCount": 96,
+    "peakHeight": 1.0,
+    "intensity": 0.55,
+    "barWidth": 6,
+    "barDirection": "outward",
+    "waveSmoothing": 0.55,
+    "waveSymmetry": false,
+    "maskThreshold": 128,
+    "maskBlur": 2,
+    "maskInvert": false,
+    "barNormalMode": "hybrid",
+    "barNormalBlend": 0.8,
+    "barNormalSmooth": 0.55,
+    "gradientColorStart": "#00ffff",
+    "gradientColorEnd": "#ff00c8"
+  }
+}

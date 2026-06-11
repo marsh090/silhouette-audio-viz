@@ -15,12 +15,28 @@ export interface SampledPoint {
 
 export type ShapeLayout = 'fullWidth' | 'fitted';
 
+export interface MaskGrid {
+  width: number;
+  height: number;
+  data: Uint8Array;
+}
+
+export interface OutlinePoint {
+  x: number;
+  y: number;
+  nx: number;
+  ny: number;
+  arcIndex: number;
+}
+
 export interface EmissionSource {
   type: 'path' | 'mask';
   sampled: SampledPoint[];
   layout?: ShapeLayout;
   closed?: boolean;
   path?: ShapePath;
+  mask?: MaskGrid;
+  outline?: OutlinePoint[];
 }
 
 export interface AudioFrame {
@@ -33,6 +49,7 @@ export interface ColorGradient {
 }
 
 export type BarDirection = 'inward' | 'outward';
+export type BarNormalMode = 'local' | 'hybrid' | 'radial';
 
 export interface VisualConfig {
   pointCount: number;
@@ -54,6 +71,12 @@ export interface VisualConfig {
   glowIntensity: number;
   smoothing: number;
   snapMode: boolean;
+  maskThreshold: number;
+  maskBlur: number;
+  maskInvert: boolean;
+  barNormalMode: BarNormalMode;
+  barNormalBlend: number;
+  barNormalSmooth: number;
 }
 
 export interface MappedFrame {
@@ -61,4 +84,4 @@ export interface MappedFrame {
   colors: Float32Array;
 }
 
-export type ShapeKind = 'line' | 'circle' | 'triangle' | 'square';
+export type ShapeKind = 'line' | 'circle' | 'triangle' | 'square' | 'image';

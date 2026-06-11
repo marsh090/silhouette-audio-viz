@@ -7,10 +7,8 @@ export function drawShapeGhost(
   width: number,
   height: number,
 ): void {
-  const path = source.path;
-  if (!path) return;
-
-  const { points, pointCount } = path;
+  const { sampled, closed } = source;
+  if (!sampled.length) return;
 
   ctx.save();
   ctx.strokeStyle = 'rgba(150, 150, 170, 0.4)';
@@ -19,13 +17,13 @@ export function drawShapeGhost(
   ctx.lineCap = 'round';
 
   ctx.beginPath();
-  for (let i = 0; i < pointCount; i++) {
-    const [x, y] = toCanvasCoords(points[i * 2], points[i * 2 + 1], source, width, height);
+  for (let i = 0; i < sampled.length; i++) {
+    const [x, y] = toCanvasCoords(sampled[i].x, sampled[i].y, source, width, height);
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
 
-  if (source.closed) ctx.closePath();
+  if (closed) ctx.closePath();
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.restore();

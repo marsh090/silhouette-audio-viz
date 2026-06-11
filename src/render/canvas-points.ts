@@ -1,5 +1,13 @@
-import type { EmissionSource, SampledPoint } from '../core/types';
+import type { EmissionSource, SampledPoint, VisualConfig } from '../core/types';
 import { getViewport, toScreen } from './viewport';
+
+/** +1 grows along outward normal; open paths keep legacy sign convention. */
+export function barGrowthSign(config: VisualConfig, source: EmissionSource): number {
+  if (!source.closed) {
+    return config.barDirection === 'inward' ? 1 : -1;
+  }
+  return config.barDirection === 'inward' ? -1 : 1;
+}
 
 export function toCanvasCoords(
   x: number,

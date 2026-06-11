@@ -1,3 +1,4 @@
+import { finalizeSampledNormals } from '../bar-normals';
 import type { ShapeDefinition } from '../shape-registry';
 import { makeCirclePath, makeLinePath, makePolygonPath, samplePath } from '../shape-path';
 import type { EmissionSource, VisualConfig } from '../types';
@@ -20,16 +21,25 @@ export function emissionFromDefinition(def: ShapeDefinition, config: VisualConfi
       geometry.rotation ?? -Math.PI / 2,
     );
     closed = true;
-  } else {
+  } else if (geometry.type === 'circle') {
     path = makeCirclePath(geometry.cx, geometry.cy, geometry.r);
     closed = true;
+  } else {
+    throw new Error(`Geometry type "${geometry.type}" is not handled by emissionFromDefinition`);
   }
+
+  const sampled = finalizeSampledNormals(
+    samplePath(path, config.pointCount, closed),
+    closed,
+    config,
+    'path',
+  );
 
   return {
     type: 'path',
     path,
     layout: def.layout,
     closed,
-    sampled: samplePath(path, config.pointCount, closed),
+    sampled,
   };
 }

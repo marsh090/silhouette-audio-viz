@@ -1,12 +1,13 @@
 import { presetKey } from '../core/config-store';
 import { makeTwoColorGradient } from '../core/color-gradient';
 import { getAllShapeDefinitions } from '../core/shape-registry';
-import type { BarDirection, ShapeKind, VisualConfig } from '../core/types';
+import type { BarDirection, BarNormalMode, ShapeKind, VisualConfig } from '../core/types';
 
 export interface ControlCallbacks {
   onConfigChange: (patch: Partial<VisualConfig>) => void;
   onShapeChange: (shape: ShapeKind) => void;
   onMediaFile: (file: File) => void;
+  onImageFile: (file: File) => void;
   onSavePreset: () => void;
 }
 
@@ -14,6 +15,19 @@ function updateModeSections(container: HTMLElement, mode: VisualConfig['renderMo
   container.querySelectorAll('[data-mode-section]').forEach((el) => {
     const section = (el as HTMLElement).dataset.modeSection;
     const show = section === 'shared' || section === mode;
+    (el as HTMLElement).style.display = show ? '' : 'none';
+  });
+}
+
+function updateBarNormalBlendVisibility(container: HTMLElement, mode: BarNormalMode): void {
+  const blendField = container.querySelector('#bar-normal-blend-field') as HTMLElement | null;
+  if (blendField) blendField.style.display = mode === 'hybrid' ? '' : 'none';
+}
+
+function updateShapeSections(container: HTMLElement, shape: ShapeKind): void {
+  container.querySelectorAll('[data-shape-section]').forEach((el) => {
+    const section = (el as HTMLElement).dataset.shapeSection;
+    const show = section === 'all' || section === shape;
     (el as HTMLElement).style.display = show ? '' : 'none';
   });
 }
@@ -33,6 +47,10 @@ export function syncControls(container: HTMLElement, config: VisualConfig, shape
   setRange('bar-width', 'bar-width-val', config.barWidth);
   setRange('bar-width-wave', 'bar-width-wave-val', config.barWidth);
   setRange('wave-smoothing', 'wave-smoothing-val', config.waveSmoothing);
+  setRange('mask-threshold', 'mask-threshold-val', config.maskThreshold);
+  setRange('mask-blur', 'mask-blur-val', config.maskBlur);
+  setRange('bar-normal-blend', 'bar-normal-blend-val', config.barNormalBlend);
+  setRange('bar-normal-smooth', 'bar-normal-smooth-val', config.barNormalSmooth);
 
   const shapeSelect = container.querySelector('#shape') as HTMLSelectElement | null;
   if (shapeSelect) shapeSelect.value = shape;
@@ -49,12 +67,21 @@ export function syncControls(container: HTMLElement, config: VisualConfig, shape
   const snapCheck = container.querySelector('#snap-mode') as HTMLInputElement | null;
   if (snapCheck) snapCheck.checked = config.snapMode;
 
+  const invertCheck = container.querySelector('#mask-invert') as HTMLInputElement | null;
+  if (invertCheck) invertCheck.checked = config.maskInvert;
+
+  const normalModeSelect = container.querySelector('#bar-normal-mode') as HTMLSelectElement | null;
+  if (normalModeSelect) normalModeSelect.value = config.barNormalMode;
+
+  updateBarNormalBlendVisibility(container, config.barNormalMode);
+
   const start = container.querySelector('#gradient-start') as HTMLInputElement | null;
   const end = container.querySelector('#gradient-end') as HTMLInputElement | null;
   if (start) start.value = config.gradientColorStart;
   if (end) end.value = config.gradientColorEnd;
 
   updateModeSections(container, config.renderMode);
+  updateShapeSections(container, shape);
 }
 
 export function mountControls(container: HTMLElement, config: VisualConfig, shape: ShapeKind, cb: ControlCallbacks): void {
@@ -101,6 +128,24 @@ export function mountControls(container: HTMLElement, config: VisualConfig, shap
       </select>
     </label>
     <label class="control-field" data-mode-section="shared">
+      Direção das barras
+      <select id="bar-normal-mode" class="control-select">
+        <option value="local" ${config.barNormalMode === 'local' ? 'selected' : ''}>Local (contorno)</option>
+        <option value="hybrid" ${config.barNormalMode === 'hybrid' ? 'selected' : ''}>Híbrido</option>
+        <option value="radial" ${config.barNormalMode === 'radial' ? 'selected' : ''}>Radial</option>
+      </select>
+    </label>
+    <label class="control-field" data-mode-section="shared" id="bar-normal-blend-field">
+      Mistura radial
+      <input type="range" id="bar-normal-blend" class="control-range" min="0" max="1" step="0.05" value="${config.barNormalBlend}" />
+      <span class="control-value" id="bar-normal-blend-val">${config.barNormalBlend}</span>
+    </label>
+    <label class="control-field" data-mode-section="shared">
+      Suavização de direção
+      <input type="range" id="bar-normal-smooth" class="control-range" min="0" max="1" step="0.05" value="${config.barNormalSmooth}" />
+      <span class="control-value" id="bar-normal-smooth-val">${config.barNormalSmooth}</span>
+    </label>
+    <label class="control-field" data-mode-section="shared">
       Pontos
       <input type="range" id="point-count" class="control-range" min="16" max="512" step="8" value="${config.pointCount}" />
       <span class="control-value" id="point-count-val">${config.pointCount}</span>
@@ -124,6 +169,28 @@ export function mountControls(container: HTMLElement, config: VisualConfig, shap
       Modo snap
       <input type="checkbox" id="snap-mode" class="control-checkbox" ${config.snapMode ? 'checked' : ''} />
     </label>
+    <div class="control-field" data-shape-section="image">
+      <span>Imagem da silhueta</span>
+      <div class="file-picker" id="image-picker" role="button" tabindex="0">
+        <span class="file-picker-btn">Escolher</span>
+        <span class="file-picker-name" id="image-name">Nenhuma imagem</span>
+      </div>
+      <input type="file" accept="image/*" id="image-file" class="file-input-hidden" />
+    </div>
+    <label class="control-field" data-shape-section="image">
+      Limiar
+      <input type="range" id="mask-threshold" class="control-range" min="0" max="255" step="1" value="${config.maskThreshold}" />
+      <span class="control-value" id="mask-threshold-val">${config.maskThreshold}</span>
+    </label>
+    <label class="control-field" data-shape-section="image">
+      Desfoque
+      <input type="range" id="mask-blur" class="control-range" min="0" max="8" step="1" value="${config.maskBlur}" />
+      <span class="control-value" id="mask-blur-val">${config.maskBlur}</span>
+    </label>
+    <label class="control-field control-check" data-shape-section="image">
+      Inverter máscara
+      <input type="checkbox" id="mask-invert" class="control-checkbox" ${config.maskInvert ? 'checked' : ''} />
+    </label>
     <label class="control-field" data-mode-section="bars">
       Grossura das barras
       <input type="range" id="bar-width" class="control-range" min="1" max="20" step="1" value="${config.barWidth}" />
@@ -146,6 +213,7 @@ export function mountControls(container: HTMLElement, config: VisualConfig, shap
   `;
 
   updateModeSections(container, config.renderMode);
+  updateShapeSections(container, shape);
 
   const fileInput = container.querySelector('#media-file') as HTMLInputElement;
   const filePicker = container.querySelector('#file-picker')!;
@@ -171,7 +239,31 @@ export function mountControls(container: HTMLElement, config: VisualConfig, shap
   });
 
   container.querySelector('#shape')!.addEventListener('change', (e) => {
-    cb.onShapeChange((e.target as HTMLSelectElement).value as ShapeKind);
+    const nextShape = (e.target as HTMLSelectElement).value as ShapeKind;
+    updateShapeSections(container, nextShape);
+    cb.onShapeChange(nextShape);
+  });
+
+  const imageInput = container.querySelector('#image-file') as HTMLInputElement;
+  const imagePicker = container.querySelector('#image-picker')!;
+  const imageName = container.querySelector('#image-name')!;
+
+  const openImage = () => imageInput.click();
+  imagePicker.addEventListener('click', openImage);
+  imagePicker.addEventListener('keydown', (e) => {
+    const key = (e as KeyboardEvent).key;
+    if (key === 'Enter' || key === ' ') {
+      e.preventDefault();
+      openImage();
+    }
+  });
+
+  imageInput.addEventListener('change', (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) {
+      imageName.textContent = file.name;
+      cb.onImageFile(file);
+    }
   });
 
   container.querySelector('#render-mode')!.addEventListener('change', (e) => {
@@ -211,12 +303,22 @@ export function mountControls(container: HTMLElement, config: VisualConfig, shap
     cb.onConfigChange({ barDirection: (e.target as HTMLSelectElement).value as BarDirection });
   });
 
+  container.querySelector('#bar-normal-mode')!.addEventListener('change', (e) => {
+    const mode = (e.target as HTMLSelectElement).value as BarNormalMode;
+    updateBarNormalBlendVisibility(container, mode);
+    cb.onConfigChange({ barNormalMode: mode });
+  });
+
   container.querySelector('#wave-symmetry')!.addEventListener('change', (e) => {
     cb.onConfigChange({ waveSymmetry: (e.target as HTMLInputElement).checked });
   });
 
   container.querySelector('#snap-mode')!.addEventListener('change', (e) => {
     cb.onConfigChange({ snapMode: (e.target as HTMLInputElement).checked });
+  });
+
+  container.querySelector('#mask-invert')!.addEventListener('change', (e) => {
+    cb.onConfigChange({ maskInvert: (e.target as HTMLInputElement).checked });
   });
 
   const bindRange = (id: string, valId: string, key: keyof VisualConfig) => {
@@ -235,4 +337,8 @@ export function mountControls(container: HTMLElement, config: VisualConfig, shap
   bindRange('bar-width', 'bar-width-val', 'barWidth');
   bindRange('bar-width-wave', 'bar-width-wave-val', 'barWidth');
   bindRange('wave-smoothing', 'wave-smoothing-val', 'waveSmoothing');
+  bindRange('mask-threshold', 'mask-threshold-val', 'maskThreshold');
+  bindRange('mask-blur', 'mask-blur-val', 'maskBlur');
+  bindRange('bar-normal-blend', 'bar-normal-blend-val', 'barNormalBlend');
+  bindRange('bar-normal-smooth', 'bar-normal-smooth-val', 'barNormalSmooth');
 }

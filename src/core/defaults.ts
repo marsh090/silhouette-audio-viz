@@ -24,4 +24,10 @@ export const DEFAULT_VISUAL_CONFIG: VisualConfig = {
   glowIntensity: 0.8,
   smoothing: 0.7,
   snapMode: false,
+  maskThreshold: 128,
+  maskBlur: 2,
+  maskInvert: false,
+  barNormalMode: 'local',
+  barNormalBlend: 0.75,
+  barNormalSmooth: 0.35,
 };

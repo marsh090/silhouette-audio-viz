@@ -1,5 +1,5 @@
 import type { EmissionSource, MappedFrame, VisualConfig } from '../core/types';
-import { getMaxAmplitudePx, toCanvasPoint } from './canvas-points';
+import { barGrowthSign, getMaxAmplitudePx, toCanvasPoint } from './canvas-points';
 import { smoothSignal } from './signal-smooth';
 import { type Point2D, strokeSmoothPathGradient } from './smooth-path';
 
@@ -15,7 +15,7 @@ export class WaveRenderer {
     const { sampled } = source;
     const { energies, colors } = frame;
     const maxAmp = getMaxAmplitudePx(source, width, height);
-    const direction = config.barDirection === 'inward' ? 1 : -1;
+    const direction = barGrowthSign(config, source);
     const tension = 0.35 + config.waveSmoothing * 0.65;
     const closed = source.closed ?? false;
 
